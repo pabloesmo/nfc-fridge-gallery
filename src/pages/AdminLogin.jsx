@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
 import { useNavigate } from "react-router-dom";
@@ -9,11 +8,12 @@ function AdminLogin() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Si ya está logueado, redirige al dashboard
-  if (user) {
-    navigate("/admin/dashboard");
-    return null;
-  }
+  // 👇 Movido a useEffect, ya no se llama durante el render
+  useEffect(() => {
+    if (user) {
+      navigate("/admin/dashboard");
+    }
+  }, [user]);
 
   async function handleGoogleLogin() {
     try {
