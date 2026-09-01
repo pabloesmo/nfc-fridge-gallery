@@ -1,10 +1,19 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/nfc-fridge-gallery/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Imanes Animados📸</title>
+    <title>Imanes Animados📸✈️</title>
+
+    <script>
+      const redirect = sessionStorage.getItem('redirect');
+      if (redirect && redirect !== '/') {
+        sessionStorage.removeItem('redirect');
+        window.history.replaceState(null, '', '/nfc-fridge-gallery' + redirect);
+      }
+    </script>
+
     <script type="module" crossorigin src="/nfc-fridge-gallery/assets/index-Cr4zuEv2.js"></script>
     <link rel="stylesheet" crossorigin href="/nfc-fridge-gallery/assets/index-DQEVDTjJ.css">
   </head>
