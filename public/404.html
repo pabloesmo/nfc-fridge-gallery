@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>NFC Fridge Gallery</title>
+    <script>
+      const path = window.location.pathname;
+      const base = '/nfc-fridge-gallery';
+      const route = path.replace(base, '');
+      sessionStorage.setItem('redirect', route || '/');
+      window.location.replace(base + '/');
+    </script>
+  </head>
+  <body></body>
+</html>
