@@ -49,13 +49,25 @@ function Lightbox({ photos, initialIndex, onClose }) {
   }
 
   useEffect(() => {
+    // Bloquea el scroll de la página mientras el lightbox está abierto
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.width = "100%";
+  
     function handleKey(e) {
       if (e.key === "ArrowLeft") prev();
       if (e.key === "ArrowRight") next();
       if (e.key === "Escape") onClose();
     }
     window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+  
+    return () => {
+      // Restaura el scroll al cerrar
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      window.removeEventListener("keydown", handleKey);
+    };
   }, []);
 
   return (
