@@ -98,8 +98,89 @@ export function formatTravelDates(startDate, endDate) {
   return `${startStr} - ${end.toLocaleDateString("es-ES", options)}`;
 }
 
-export function getCountryCoordinates(countryName) {
-  const coords = {
+export function getCountryCoordinates(countryName, cityName) {
+  // Coordenadas por ciudad (más precisas)
+  const cityCoords = {
+    "pisa": [43.7228, 10.4017],
+    "florencia": [43.7696, 11.2558],
+    "sevilla": [37.3891, -5.9845],
+    "liubliana": [46.0569, 14.5058],
+    "roma": [41.9028, 12.4964],
+    "suances": [43.4167, -4.0333],
+    "milán": [45.4654, 9.1859],
+    "milan": [45.4654, 9.1859],
+    "praga": [50.0755, 14.4378],
+    "prague": [50.0755, 14.4378],
+    "zagreb": [45.8150, 15.9819],
+    "verona": [45.4384, 10.9916],
+    "venecia": [45.4408, 12.3155],
+    "venice": [45.4408, 12.3155],
+    "paris": [48.8566, 2.3522],
+    "parís": [48.8566, 2.3522],
+    "český krumlov": [48.8127, 14.3175],
+    "cesky krumlov": [48.8127, 14.3175],
+    "cracovia": [50.0647, 19.9450],
+    "krakow": [50.0647, 19.9450],
+    "granada": [37.1773, -3.5986],
+    // Capitales y ciudades principales por si acaso
+    "madrid": [40.4168, -3.7038],
+    "barcelona": [41.3851, 2.1734],
+    "tokyo": [35.6762, 139.6503],
+    "tokio": [35.6762, 139.6503],
+    "london": [51.5074, -0.1278],
+    "londres": [51.5074, -0.1278],
+    "berlin": [52.5200, 13.4050],
+    "berlín": [52.5200, 13.4050],
+    "lisbon": [38.7169, -9.1399],
+    "lisboa": [38.7169, -9.1399],
+    "amsterdam": [52.3676, 4.9041],
+    "vienna": [48.2082, 16.3738],
+    "viena": [48.2082, 16.3738],
+    "brussels": [50.8503, 4.3517],
+    "bruselas": [50.8503, 4.3517],
+    "stockholm": [59.3293, 18.0686],
+    "estocolmo": [59.3293, 18.0686],
+    "oslo": [59.9139, 10.7522],
+    "copenhagen": [55.6761, 12.5683],
+    "copenhague": [55.6761, 12.5683],
+    "helsinki": [60.1699, 24.9384],
+    "warsaw": [52.2297, 21.0122],
+    "varsovia": [52.2297, 21.0122],
+    "budapest": [47.4979, 19.0402],
+    "athens": [37.9838, 23.7275],
+    "atenas": [37.9838, 23.7275],
+    "istanbul": [39.9334, 32.8597],
+    "estambul": [39.9334, 32.8597],
+    "bangkok": [13.7563, 100.5018],
+    "singapore": [1.3521, 103.8198],
+    "singapur": [1.3521, 103.8198],
+    "seoul": [37.5665, 126.9780],
+    "seúl": [37.5665, 126.9780],
+    "sydney": [-33.8688, 151.2093],
+    "dubai": [25.2048, 55.2708],
+    "new york": [40.7128, -74.0060],
+    "nueva york": [40.7128, -74.0060],
+    "los angeles": [34.0522, -118.2437],
+    "los ángeles": [34.0522, -118.2437],
+    "mexico city": [19.4326, -99.1332],
+    "ciudad de méxico": [19.4326, -99.1332],
+    "buenos aires": [-34.6037, -58.3816],
+    "rio de janeiro": [-22.9068, -43.1729],
+    "são paulo": [-23.5505, -46.6333],
+    "marrakech": [31.6295, -7.9811],
+    "cairo": [30.0444, 31.2357],
+    "el cairo": [30.0444, 31.2357],
+    "nairobi": [-1.2921, 36.8219],
+    "reykjavik": [64.1355, -21.8954],
+    "reikiavik": [64.1355, -21.8954],
+    "moscow": [55.7558, 37.6173],
+    "moscú": [55.7558, 37.6173],
+    "havana": [23.1136, -82.3666],
+    "la habana": [23.1136, -82.3666],
+  };
+
+  // Coordenadas por país como fallback
+  const countryCoords = {
     "españa": [40.4168, -3.7038], "spain": [40.4168, -3.7038],
     "japón": [35.6762, 139.6503], "japan": [35.6762, 139.6503],
     "francia": [48.8566, 2.3522], "france": [48.8566, 2.3522],
@@ -151,5 +232,11 @@ export function getCountryCoordinates(countryName) {
     "cuba": [23.1136, -82.3666],
     "república dominicana": [18.4861, -69.9312],
   };
-  return coords[countryName.toLowerCase()] || null;
+
+  // Primero busca por ciudad, luego por país como fallback
+  if (cityName) {
+    const cityKey = cityName.toLowerCase();
+    if (cityCoords[cityKey]) return cityCoords[cityKey];
+  }
+  return countryCoords[countryName.toLowerCase()] || null;
 }

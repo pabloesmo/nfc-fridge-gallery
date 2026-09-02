@@ -23,7 +23,7 @@ function WorldMap({ magnets, unlockedId, onLockedClick, onUnlockedClick, isAdmin
       }).addTo(map);
 
       magnets.forEach(magnet => {
-        const coords = getCountryCoordinates(magnet.country);
+        const coords = getCountryCoordinates(magnet.country, magnet.city);
         if (!coords) return;
 
         const isUnlocked = isAdmin || magnet.id === unlockedId;
