@@ -4,6 +4,68 @@ import { signOut } from "firebase/auth";
 import { db, auth } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { getCountryFlag, getCountryGradient, formatTravelDates } from "../utils/countryUtils";
+import EditMagnetModal from "../components/EditMagnetModal";
+
+function MagnetCard({ magnet, onEdit, onClick }) {
+  const flag = getCountryFlag(magnet.country);
+  const gradient = getCountryGradient(magnet.country);
+  const dates = formatTravelDates(magnet.startDate, magnet.endDate);
+
+  function handleEditClick(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    onEdit(magnet);
+  }
+
+  return (
+    <div
+      className="relative rounded-2xl overflow-hidden cursor-pointer group border border-gray-700 hover:border-gray-500 transition-all duration-300 hover:scale-[1.02]"
+      style={{ minHeight: "200px" }}
+      onClick={onClick}
+    >
+      {/* Fondo: portada o degradado */}
+      {magnet.coverPhoto ? (
+        <>
+          <img
+            src={magnet.coverPhoto.url}
+            alt="Portada"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className={`absolute inset-0 bg-gradient-to-t ${gradient} opacity-80`} />
+        </>
+      ) : (
+        <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
+      )}
+
+      {/* Botón editar — separado del onClick de la tarjeta */}
+      <div className="absolute top-3 right-3 z-20">
+        <button
+          type="button"
+          onClickCapture={handleEditClick}
+          className="bg-black bg-opacity-50 hover:bg-opacity-80 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition"
+        >
+          ✏️ Editar
+        </button>
+      </div>
+
+      {/* Contenido */}
+      <div className="relative z-10 p-5 flex flex-col justify-between h-full" style={{ minHeight: "200px" }}>
+        <div className="text-4xl">{flag}</div>
+        <div>
+          <h3 className="text-white font-bold text-xl leading-tight">{magnet.city}</h3>
+          <p className="text-white text-opacity-80 text-sm">{magnet.country}</p>
+          {dates && (
+            <p className="text-white text-opacity-60 text-xs mt-1">📅 {dates}</p>
+          )}
+          <p className="text-white text-opacity-50 text-xs mt-2">
+            {magnet.photos?.length || 0} fotos
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function AdminDashboard() {
   const { user } = useAuth();
@@ -11,6 +73,7 @@ function AdminDashboard() {
   const [magnets, setMagnets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingMagnet, setEditingMagnet] = useState(null);
   const [newMagnet, setNewMagnet] = useState({ country: "", city: "" });
   const [saving, setSaving] = useState(false);
 
@@ -50,6 +113,10 @@ function AdminDashboard() {
     }
   }
 
+  function handleSaveEdit(updated) {
+    setMagnets(prev => prev.map(m => m.id === updated.id ? updated : m));
+  }
+
   async function handleLogout() {
     await signOut(auth);
     navigate("/admin");
@@ -64,7 +131,7 @@ function AdminDashboard() {
           <h1 className="text-xl font-bold">NFC Fridge Gallery</h1>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-gray-400 text-sm">{user?.email}</span>
+          <span className="text-gray-400 text-sm hidden sm:block">{user?.email}</span>
           <button
             onClick={handleLogout}
             className="text-sm text-red-400 hover:text-red-300 transition"
@@ -74,22 +141,26 @@ function AdminDashboard() {
         </div>
       </div>
 
-      {/* Contenido */}
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">Mis imanes</h2>
+          <h2 className="text-xl font-semibold">
+            Mis viajes
+            <span className="text-gray-500 text-sm font-normal ml-2">
+              ({magnets.length})
+            </span>
+          </h2>
           <button
             onClick={() => setShowForm(!showForm)}
             className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition"
           >
-            + Nuevo imán
+            + Nuevo viaje
           </button>
         </div>
 
         {/* Formulario nuevo imán */}
         {showForm && (
           <div className="bg-gray-800 rounded-2xl p-6 mb-6 border border-gray-700">
-            <h3 className="font-semibold mb-4">Nuevo imán</h3>
+            <h3 className="font-semibold mb-4">Nuevo viaje</h3>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">País</label>
@@ -118,7 +189,7 @@ function AdminDashboard() {
                 disabled={saving || !newMagnet.country || !newMagnet.city}
                 className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-medium transition"
               >
-                {saving ? "Guardando..." : "Crear imán"}
+                {saving ? "Guardando..." : "Crear viaje"}
               </button>
               <button
                 onClick={() => setShowForm(false)}
@@ -130,37 +201,37 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Lista de imanes */}
+        {/* Lista de álbumes */}
         {loading ? (
           <p className="text-gray-400">Cargando...</p>
         ) : magnets.length === 0 ? (
           <div className="text-center py-16 text-gray-500">
             <div className="text-5xl mb-4">🧲</div>
-            <p>No hay imanes todavía</p>
-            <p className="text-sm mt-1">Crea tu primer imán con el botón de arriba</p>
+            <p>No hay viajes todavía</p>
+            <p className="text-sm mt-1">Crea tu primer viaje con el botón de arriba</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {magnets.map(magnet => (
-              <div
+              <MagnetCard
                 key={magnet.id}
-                className="bg-gray-800 rounded-2xl p-5 border border-gray-700 hover:border-gray-500 transition cursor-pointer"
+                magnet={magnet}
+                onEdit={setEditingMagnet}
                 onClick={() => navigate(`/admin/magnet/${magnet.id}`)}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-2xl">📍</span>
-                  <span className="text-xs text-gray-500 font-mono">{magnet.id}</span>
-                </div>
-                <h3 className="font-semibold text-lg">{magnet.city}</h3>
-                <p className="text-gray-400 text-sm">{magnet.country}</p>
-                <p className="text-gray-500 text-xs mt-3">
-                  {magnet.photos?.length || 0} fotos
-                </p>
-              </div>
+              />
             ))}
           </div>
         )}
       </div>
+
+      {/* Modal edición */}
+      {editingMagnet && (
+        <EditMagnetModal
+          magnet={editingMagnet}
+          onClose={() => setEditingMagnet(null)}
+          onSave={handleSaveEdit}
+        />
+      )}
     </div>
   );
 }
