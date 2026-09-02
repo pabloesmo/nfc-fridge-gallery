@@ -11,8 +11,8 @@ function WorldMap({ magnets, unlockedId, onLockedClick, onUnlockedClick, isAdmin
 
     import("leaflet").then(L => {
       const map = L.map(mapRef.current, {
-        center: [20, 0],
-        zoom: 2,
+        center: [48, 15],
+        zoom: 4,
         zoomControl: true,
         scrollWheelZoom: true,
       });
