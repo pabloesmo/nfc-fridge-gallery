@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { getCountryFlag, getCountryGradient, formatTravelDates } from "../utils/countryUtils";
 import EditMagnetModal from "../components/EditMagnetModal";
+import WorldMap from "../components/WorldMap";
 
 function MagnetCard({ magnet, onEdit, onClick }) {
   const flag = getCountryFlag(magnet.country);
@@ -198,6 +199,20 @@ function AdminDashboard() {
                 Cancelar
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Mapa mundial */}
+        {magnets.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold mb-3">🗺️ Mapa de viajes</h2>
+            <WorldMap
+              magnets={magnets}
+              unlockedId={null}
+              isAdmin={true}
+              onUnlockedClick={magnet => navigate(`/admin/magnet/${magnet.id}`)}
+              onLockedClick={() => {}}
+            />
           </div>
         )}
 

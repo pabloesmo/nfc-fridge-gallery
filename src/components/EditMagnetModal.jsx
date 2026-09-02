@@ -39,7 +39,7 @@ function EditMagnetModal({ magnet, onClose, onSave }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black bg-opacity-70 z-[9999] flex items-center justify-center p-4"
       onClick={handleBackdropClick}
     >
       <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-md border border-gray-700">
