@@ -122,6 +122,7 @@ export function getCountryCoordinates(countryName, cityName) {
     "cracovia": [50.0647, 19.9450],
     "krakow": [50.0647, 19.9450],
     "granada": [37.1773, -3.5986],
+    "bled": [46.3692, 14.1136],
     // Capitales y ciudades principales por si acaso
     "madrid": [40.4168, -3.7038],
     "barcelona": [41.3851, 2.1734],

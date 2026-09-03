@@ -3,6 +3,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useParams, useNavigate } from "react-router-dom";
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from "../cloudinary";
+import imageCompression from "browser-image-compression";
 import {
   DndContext,
   closestCenter,
@@ -196,17 +197,45 @@ function AdminMagnetDetail() {
     }
   }
 
+  async function compressImage(file) {
+    // Si pesa menos de 8MB no comprimimos
+    if (file.size < 8 * 1024 * 1024) return file;
+  
+    const options = {
+      maxSizeMB: 8,
+      maxWidthOrHeight: 4096,
+      useWebWorker: true,
+      preserveExifData: true,
+    };
+  
+    try {
+      const compressed = await imageCompression(file, options);
+      console.log(`Comprimida: ${(file.size / 1024 / 1024).toFixed(1)}MB → ${(compressed.size / 1024 / 1024).toFixed(1)}MB`);
+      return compressed;
+    } catch {
+      return file;
+    }
+  }
+
   async function uploadToCloudinary(file) {
+    const fileToUpload = await compressImage(file);
+    console.log("Subiendo:", fileToUpload.name, fileToUpload.type, fileToUpload.size);
+  
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", fileToUpload);
     formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
     formData.append("folder", `nfc-fridge-gallery/${id}`);
-
+  
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
       { method: "POST", body: formData }
     );
-    if (!response.ok) throw new Error("Error subiendo imagen");
+  
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error Cloudinary detallado:", JSON.stringify(errorData));
+      throw new Error(errorData.error?.message || "Error subiendo imagen");
+    }
     return await response.json();
   }
 

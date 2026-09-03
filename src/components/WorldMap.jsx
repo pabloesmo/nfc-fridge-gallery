@@ -5,23 +5,34 @@ import "leaflet/dist/leaflet.css";
 function WorldMap({ magnets, unlockedId, onLockedClick, onUnlockedClick, isAdmin }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const markersRef = useRef([]);
 
   useEffect(() => {
-    if (mapInstanceRef.current) return;
+    let map = mapInstanceRef.current;
 
     import("leaflet").then(L => {
-      const map = L.map(mapRef.current, {
-        center: [48, 15],
-        zoom: 4,
-        zoomControl: true,
-        scrollWheelZoom: true,
-      });
+      // Inicializa el mapa solo si no existe
+      if (!mapInstanceRef.current) {
+        map = L.map(mapRef.current, {
+          center: [48, 15],
+          zoom: 4,
+          zoomControl: true,
+          scrollWheelZoom: true,
+        });
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap contributors",
-        className: "map-tiles",
-      }).addTo(map);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap contributors",
+          className: "map-tiles",
+        }).addTo(map);
 
+        mapInstanceRef.current = map;
+      }
+
+      // Elimina marcadores anteriores
+      markersRef.current.forEach(m => m.remove());
+      markersRef.current = [];
+
+      // Añade marcadores actualizados
       magnets.forEach(magnet => {
         const coords = getCountryCoordinates(magnet.country, magnet.city);
         if (!coords) return;
@@ -29,7 +40,6 @@ function WorldMap({ magnets, unlockedId, onLockedClick, onUnlockedClick, isAdmin
         const isUnlocked = isAdmin || magnet.id === unlockedId;
         const flag = getCountryFlag(magnet.country);
 
-        // Crear icono personalizado
         const iconHtml = magnet.coverPhoto
           ? `<div style="
               width: 48px;
@@ -66,7 +76,7 @@ function WorldMap({ magnets, unlockedId, onLockedClick, onUnlockedClick, isAdmin
           popupAnchor: [0, -28],
         });
 
-        const marker = L.marker(coords, { icon }).addTo(map);
+        const marker = L.marker(coords, { icon }).addTo(mapInstanceRef.current);
 
         marker.on("click", () => {
           if (isUnlocked) {
@@ -76,25 +86,25 @@ function WorldMap({ magnets, unlockedId, onLockedClick, onUnlockedClick, isAdmin
           }
         });
 
-        // Tooltip con ciudad y país
         marker.bindTooltip(
           `<div style="text-align:center;font-weight:bold">${flag} ${magnet.city}</div>
            <div style="text-align:center;font-size:12px;color:#9ca3af">${magnet.country}</div>
            ${!isUnlocked ? '<div style="text-align:center;font-size:11px;color:#ef4444;margin-top:2px">🔒 Escanea el NFC</div>' : ""}`,
           { direction: "top", offset: [0, -30] }
         );
-      });
 
-      mapInstanceRef.current = map;
+        markersRef.current.push(marker);
+      });
     });
 
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
+        markersRef.current = [];
       }
     };
-  }, [magnets]);
+  }, [magnets]); // 👈 se re-ejecuta cada vez que cambian los magnets
 
   return (
     <div

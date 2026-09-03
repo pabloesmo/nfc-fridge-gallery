@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { db, auth } from "../firebase";
 import { useAuth } from "../context/AuthContext";
@@ -8,7 +8,7 @@ import { getCountryFlag, getCountryGradient, formatTravelDates } from "../utils/
 import EditMagnetModal from "../components/EditMagnetModal";
 import WorldMap from "../components/WorldMap";
 
-function MagnetCard({ magnet, onEdit, onClick }) {
+function MagnetCard({ magnet, onEdit, onDelete, onClick }) {
   const flag = getCountryFlag(magnet.country);
   const gradient = getCountryGradient(magnet.country);
   const dates = formatTravelDates(magnet.startDate, magnet.endDate);
@@ -27,26 +27,30 @@ function MagnetCard({ magnet, onEdit, onClick }) {
     >
       {/* Fondo: portada o degradado */}
       {magnet.coverPhoto ? (
-        <>
-          <img
-            src={magnet.coverPhoto.url}
-            alt="Portada"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className={`absolute inset-0 bg-gradient-to-t ${gradient} opacity-80`} />
-        </>
+        <img
+          src={magnet.coverPhoto.url}
+          alt="Portada"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
       ) : (
         <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
       )}
 
       {/* Botón editar — separado del onClick de la tarjeta */}
-      <div className="absolute top-3 right-3 z-20">
+      <div className="absolute top-3 right-3 z-20 flex gap-2">
         <button
           type="button"
           onClickCapture={handleEditClick}
           className="bg-black bg-opacity-50 hover:bg-opacity-80 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition"
         >
           ✏️ Editar
+        </button>
+        <button
+          type="button"
+          onClickCapture={e => onDelete(magnet, e)}
+          className="bg-red-600 bg-opacity-80 hover:bg-opacity-100 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition"
+        >
+          🗑️ Borrar
         </button>
       </div>
 
@@ -111,6 +115,19 @@ function AdminDashboard() {
       console.error("Error creando imán:", err);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDeleteMagnet(magnet, e) {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!confirm(`¿Eliminar el álbum de ${magnet.city}? Esta acción no se puede deshacer.`)) return;
+    try {
+      await deleteDoc(doc(db, "magnets", magnet.id));
+      setMagnets(prev => prev.filter(m => m.id !== magnet.id));
+    } catch (err) {
+      console.error("Error eliminando álbum:", err);
+      alert("Error al eliminar el álbum.");
     }
   }
 
@@ -232,6 +249,7 @@ function AdminDashboard() {
                 key={magnet.id}
                 magnet={magnet}
                 onEdit={setEditingMagnet}
+                onDelete={handleDeleteMagnet}
                 onClick={() => navigate(`/admin/magnet/${magnet.id}`)}
               />
             ))}
